@@ -6,6 +6,7 @@ Small, working examples for the [Linkbreakers](https://linkbreakers.com/develope
 
 | Task | Language | Directory |
 |---|---|---|
+| One QR code for an app download: App Store on iPhone, Google Play on Android, a web page on everything else | Python | [`app-download-qr-code-iphone-android-python`](app-download-qr-code-iphone-android-python) |
 | Bulk-create dynamic QR codes and short links from a CSV, then export scan counts to a CSV | Python | [`bulk-dynamic-qr-codes-from-csv-python`](bulk-dynamic-qr-codes-from-csv-python) |
 
 ## Run one
