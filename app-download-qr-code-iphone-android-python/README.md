@@ -9,7 +9,7 @@ Create one dynamic QR code that opens the App Store on an iPhone, Google Play on
 
 *Created by the run below: it opens `https://linkbreak.ing/sV360hmcp`. Scan it with an iPhone, then with an Android phone.*
 
-Video: coming
+Video: [How to make one QR code that opens the App Store on iPhone and Google Play on Android](https://www.youtube.com/watch?v=CjSVFfSPQBM) (3 minutes)
 
 ## Quickstart
 
