@@ -8,6 +8,7 @@ Small, working examples for the [Linkbreakers](https://linkbreakers.com/develope
 |---|---|---|
 | One QR code for an app download: App Store on iPhone, Google Play on Android, a web page on everything else | Python | [`app-download-qr-code-iphone-android-python`](app-download-qr-code-iphone-android-python) |
 | Bulk-create dynamic QR codes and short links from a CSV, then export scan counts to a CSV | Python | [`bulk-dynamic-qr-codes-from-csv-python`](bulk-dynamic-qr-codes-from-csv-python) |
+| QR code scans by product line and by country: tag each code with its product line, then read scans filtered by tag and country | Python | [`qr-code-scans-by-product-and-country-python`](qr-code-scans-by-product-and-country-python) |
 
 ## Run one
 
