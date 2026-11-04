@@ -8,9 +8,9 @@ Turn a CSV of names and URLs into dynamic QR codes and short links in one API ca
 
 The codes are dynamic: each one points at a short link, so you can change where it goes later without reprinting it.
 
-<img src="sample-qr.png" width="160" alt="A QR code created by this example. It opens https://linkbreak.ing/PMVw9HynM, which redirects to the Wikipedia article on QR codes.">
+<img src="sample-qr.png" width="160" alt="A QR code created by this example. It opens https://linkbreak.ing/Un94UKynM, which redirects to a steakhouse's dinner menu.">
 
-*Created by the run below: it opens `https://linkbreak.ing/PMVw9HynM`, which redirects to the Wikipedia article on QR codes.*
+*Created by the run below: it opens `https://linkbreak.ing/Un94UKynM`, which redirects to a steakhouse's dinner menu.*
 
 ## Quickstart
 
@@ -32,13 +32,13 @@ Replace `links.csv` with your own file. The only columns read are `name` and `de
 
 ## Sample output
 
-A real run against the Linkbreakers API on 2026-10-27, with the `links.csv` in this directory:
+A real run against the Linkbreakers API on 2026-11-04, with the `links.csv` in this directory:
 
 ```text
 $ python bulk_qr.py create links.csv
-https://linkbreak.ing/PMVw9HynM  QR code on Wikipedia
-https://linkbreak.ing/QpVwrTmnM  Python home page
-https://linkbreak.ing/xHV6rHynM  OpenStreetMap
+https://linkbreak.ing/Un94UKynM  Dinner menu
+https://linkbreak.ing/fx94Idycp  Store locator
+https://linkbreak.ing/sirfUKmnM  Museum visit
 
 3 dynamic QR codes created. Links: links_out.csv  Images: qr/
 ```
@@ -47,31 +47,31 @@ https://linkbreak.ing/xHV6rHynM  OpenStreetMap
 
 ```csv
 name,destination,short_link,link_id,qr_code_file
-QR code on Wikipedia,https://en.wikipedia.org/wiki/QR_code,https://linkbreak.ing/PMVw9HynM,e923a056-c82c-47bb-888b-76a9464c1948,qr/PMVw9HynM.svg
-Python home page,https://www.python.org/,https://linkbreak.ing/QpVwrTmnM,0e5b6e82-a7d3-4e58-8740-cd231553a6a3,qr/QpVwrTmnM.svg
-OpenStreetMap,https://www.openstreetmap.org/,https://linkbreak.ing/xHV6rHynM,383cc4f2-75cb-42d6-90fd-40e8c32a4012,qr/xHV6rHynM.svg
+Dinner menu,https://peterluger.com/pages/menus,https://linkbreak.ing/Un94UKynM,845a279e-f62c-4686-914b-f315e03dcb38,qr/Un94UKynM.svg
+Store locator,https://www.target.com/store-locator/find-stores,https://linkbreak.ing/fx94Idycp,c9263bb0-fe5d-4597-9a91-07b2a9ee2ee1,qr/fx94Idycp.svg
+Museum visit,https://www.louvre.fr/en/visit,https://linkbreak.ing/sirfUKmnM,659b556a-d994-4fe8-b19a-2ac28c8cc639,qr/sirfUKmnM.svg
 ```
 
-After a few test visits:
+After a few test scans:
 
 ```text
 $ python bulk_qr.py report
-     2  https://linkbreak.ing/PMVw9HynM  QR code on Wikipedia
-     1  https://linkbreak.ing/QpVwrTmnM  Python home page
-     1  https://linkbreak.ing/xHV6rHynM  OpenStreetMap
+     2  https://linkbreak.ing/Un94UKynM  Dinner menu
+     1  https://linkbreak.ing/fx94Idycp  Store locator
+     3  https://linkbreak.ing/sirfUKmnM  Museum visit
 
 Scan report: scan_report.csv
 ```
 
 ## How it works
 
-`bulk_qr.py` is about 150 lines and makes three SDK calls:
+`bulk_qr.py` is about 170 lines and makes three SDK calls:
 
-1. **`LinksApi.links_service_create_bulk`** creates up to 250 links per request (the API's limit; larger files are sent in batches of 250). A batch is transactional: if one row is invalid, none of that batch is created. Each link gets the tag `csv-import` and `wait_for_qrcode=True`, so its QR code exists when the call returns.
-2. **`LinksApi.links_service_resolve_qrcode_images`** returns a signed URL for each link's QR code. The URLs expire, so the script downloads the SVGs right away into `qr/<shortlink>.svg`.
-3. **`LinksApi.links_service_get`** (in `report`) reads each link's `event_count`, the number of scans and clicks. It updates within a few seconds of a scan.
+1. **`LinksApi.links_service_create_bulk`** creates up to 250 links per request (the API's limit; larger files are sent in batches of 250). A batch is transactional: if one row is invalid, none of that batch is created. Each link gets the tag `csv-import`.
+2. **`LinksApi.links_service_resolve_qrcode_images`** returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the script asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
+3. **`LinksApi.links_service_get`** (in `report`) reads each link's `event_count`, the number of scans and clicks. It is not instant: in the run above, the counts caught up within a minute of the scans.
 
-Each batch is sent with an `Idempotency-Key` derived from its contents. If a run fails halfway (a timeout, a failed download), running it again with the same CSV within 24 hours gets the first response back instead of creating the links twice.
+Each batch is sent with an `Idempotency-Key` derived from its contents. If a run fails after a batch was answered (a failed download, a crash), running it again with the same CSV within 24 hours gets the first response back instead of creating the links twice.
 
 Scanning a code opens `https://linkbreak.ing/<shortlink>?lbsrc=qrcode`, which redirects to the destination; the `lbsrc` parameter is how Linkbreakers tells a scan from a click on the short link.
 

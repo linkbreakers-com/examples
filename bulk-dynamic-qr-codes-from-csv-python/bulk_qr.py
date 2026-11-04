@@ -9,6 +9,7 @@ import csv
 import hashlib
 import os
 import sys
+import time
 from pathlib import Path
 
 import urllib3
@@ -26,6 +27,7 @@ from linkbreakers.exceptions import ApiException
 # The API accepts at most 250 links per bulk request.
 BATCH_SIZE = 250
 TAG = "csv-import"
+QR_WAIT_ATTEMPTS = 15
 
 
 def client() -> ApiClient:
@@ -59,18 +61,13 @@ def create(input_csv: Path, output_csv: Path, qr_dir: Path) -> None:
                     name=row["name"],
                     destination=row["destination"],
                     tags=[TAG],
-                    wait_for_qrcode=True,
                 )
                 for row in batch
             ])
             # Same batch, same key: a retry after a timeout cannot create duplicates.
             key = hashlib.sha256(request.to_json().encode()).hexdigest()
             created = links_api.links_service_create_bulk(request, idempotency_key=key).links or []
-
-            # Signed image URLs expire, so download the files now.
-            images = links_api.links_service_resolve_qrcode_images(
-                ResolveQrcodeImagesRequest(link_ids=[link.id for link in created])
-            ).qrcode_signed_urls or {}
+            images = qr_images(links_api, [link.id for link in created])
 
             # Links come back in request order.
             for row, link in zip(batch, created):
@@ -89,6 +86,23 @@ def create(input_csv: Path, output_csv: Path, qr_dir: Path) -> None:
 
     write_csv(output_csv, out)
     print(f"\n{len(out)} dynamic QR codes created. Links: {output_csv}  Images: {qr_dir}/")
+
+
+def qr_images(links_api: LinksApi, link_ids: list[str]) -> dict[str, str]:
+    """Each QR code is drawn in the background right after the call. Ask for the
+    images until every link has one; signed URLs expire, so download them now."""
+    images: dict[str, str] = {}
+    for _ in range(QR_WAIT_ATTEMPTS):
+        time.sleep(2)
+        images = links_api.links_service_resolve_qrcode_images(
+            ResolveQrcodeImagesRequest(link_ids=link_ids)
+        ).qrcode_signed_urls or {}
+        if all(link_id in images for link_id in link_ids):
+            break
+    missing = len(link_ids) - len(images)
+    if missing:
+        print(f"{missing} QR codes were not ready yet; run the report later or download them from the dashboard.", file=sys.stderr)
+    return images
 
 
 def report(links_csv: Path, report_csv: Path) -> None:
