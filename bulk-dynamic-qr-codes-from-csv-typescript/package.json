@@ -1,0 +1,25 @@
+{
+  "name": "bulk-dynamic-qr-codes-from-csv-typescript",
+  "private": true,
+  "description": "Bulk-create dynamic QR codes and short links from a CSV with the Linkbreakers TypeScript SDK, then export scan counts",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "create": "tsx bulk-qr.ts create",
+    "report": "tsx bulk-qr.ts report",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "csv-parse": "^7.0.3",
+    "csv-stringify": "^6.9.0",
+    "linkbreakers": "^1.190.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "license": "MIT"
+}

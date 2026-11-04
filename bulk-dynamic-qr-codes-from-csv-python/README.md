@@ -1,6 +1,6 @@
 # Bulk dynamic QR codes from a CSV (Python)
 
-Turn a CSV of names and URLs into dynamic QR codes and short links in one API call, with the official [Linkbreakers](https://linkbreakers.com/developers?utm_source=github&utm_content=bulk-dynamic-qr-codes-from-csv-python) Python SDK, then pull each code's scan count back into a CSV.
+Turn a CSV of names and URLs into dynamic QR codes and short links in one API call, with the official [Linkbreakers](https://linkbreakers.com/developers?utm_source=github&utm_content=bulk-dynamic-qr-codes-from-csv-python) Python SDK, then pull each code's scan count back into a CSV. The same example in TypeScript: [`bulk-dynamic-qr-codes-from-csv-typescript`](../bulk-dynamic-qr-codes-from-csv-typescript).
 
 - **In:** `links.csv` with `name,destination`
 - **Out:** `links_out.csv` (short link and id per row) and one SVG QR code per row in `qr/`
