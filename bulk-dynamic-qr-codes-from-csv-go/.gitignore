@@ -1,0 +1,5 @@
+.env
+bulk-dynamic-qr-codes-from-csv-go
+links_out.csv
+scan_report.csv
+qr/
