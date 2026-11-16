@@ -5,4 +5,4 @@
 - Create: `npx tsx bulk-qr.ts create links.csv` writes `links_out.csv` and `qr/<shortlink>.svg`. Each run creates real links and uses platform credits.
 - Report: `npx tsx bulk-qr.ts report` reads `links_out.csv`, writes `scan_report.csv`.
 - No test suite yet. Type-check with `npm run typecheck`.
-- SDK calls used (`linkbreakers` on npm, `LinksApi`): `linksServiceCreateBulk`, `linksServiceResolveQrcodeImages`, `linksServiceGet`. Max 250 links per bulk request.
+- SDK calls used (`linkbreakers` on npm, `LinksApi`): `linksServiceCreateBulk`, `linksServiceGet` (with `include: ["qrcodeSignedUrl"]` for the QR image). Max 250 links per bulk request.

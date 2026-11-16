@@ -25,10 +25,9 @@ from linkbreakers import (
     DevicePlatformConditionValue,
     EventAction,
     LinksApi,
-    ResolveQrcodeImagesRequest,
     WorkflowStepPayload,
     WorkflowStepsApi,
-    WorkflowStepsServiceConnectStepBody,
+    WorkflowStepsServiceConnectBody,
     WorkflowStepsServiceCreateBody,
 )
 from linkbreakers.exceptions import ApiException
@@ -59,8 +58,8 @@ def redirect_step(steps_api: WorkflowStepsApi, link_id: str, url: str) -> str:
 
 
 def connect(steps_api: WorkflowStepsApi, link_id: str, step_id: str, branch_id: str, next_step_id: str) -> None:
-    steps_api.workflow_steps_service_connect_step(
-        link_id, step_id, branch_id, WorkflowStepsServiceConnectStepBody(next_step_id=next_step_id)
+    steps_api.workflow_steps_service_connect(
+        link_id, step_id, branch_id, WorkflowStepsServiceConnectBody(next_step_id=next_step_id)
     )
 
 
@@ -111,18 +110,16 @@ def create(name: str, app_store: str, google_play: str, fallback: str, qr_path: 
             print(f"workflow issue: {issue.to_dict()}")
 
         # 5. The QR code image. Signed URLs expire, so download it now.
-        images = links_api.links_service_resolve_qrcode_images(
-            ResolveQrcodeImagesRequest(link_ids=[link.id])
-        ).qrcode_signed_urls or {}
-        if link.id in images:
-            download(images[link.id], qr_path)
+        image_url = links_api.links_service_get(link.id, include=["qrcodeSignedUrl"]).link.qrcode_signed_url
+        if image_url:
+            download(image_url, qr_path)
 
     print(f"Link id:     {link.id}")
     print(f"Short link:  {link.entrypoint}")
     print(f"iOS       -> {app_store}")
     print(f"Android   -> {google_play}")
     print(f"Others    -> {fallback}")
-    print(f"QR code:     {qr_path if link.id in images else 'not ready yet, download it from the dashboard'}")
+    print(f"QR code:     {qr_path if image_url else 'not ready yet, download it from the dashboard'}")
 
 
 def download(url: str, path: Path) -> None:

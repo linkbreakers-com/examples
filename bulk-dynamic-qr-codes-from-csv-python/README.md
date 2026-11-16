@@ -68,7 +68,7 @@ Scan report: scan_report.csv
 `bulk_qr.py` is about 170 lines and makes three SDK calls:
 
 1. **`LinksApi.links_service_create_bulk`** creates up to 250 links per request (the API's limit; larger files are sent in batches of 250). A batch is transactional: if one row is invalid, none of that batch is created. Each link gets the tag `csv-import`.
-2. **`LinksApi.links_service_resolve_qrcode_images`** returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the script asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
+2. **`LinksApi.links_service_get`** with `include=["qrcodeSignedUrl"]` returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the script asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
 3. **`LinksApi.links_service_get`** (in `report`) reads each link's `event_count`, the number of scans and clicks. It is not instant: in the run above, the counts caught up within a minute of the scans.
 
 Each batch is sent with an `Idempotency-Key` derived from its contents. If a run fails after a batch was answered (a failed download, a crash), running it again with the same CSV within 24 hours gets the first response back instead of creating the links twice.

@@ -93,7 +93,7 @@ $ python retargeting_pixels.py --shortlink 3aOqKlmnp --probe
 
 ## How it works
 
-`retargeting_pixels.py` makes three calls to `RetargetingPixelsApi`:
+`retargeting_pixels.py` makes three calls to `IntegrationsRetargetingPixelsApi`:
 
 1. **`retargeting_pixels_service_get()`** returns the pixels: `meta_pixel_id`, `google_tag_id`, `tiktok_pixel_id`, `linkedin_partner_id`, `gtm_container_id`, `updated_at`, and one scope per pixel that is set.
 2. **`retargeting_pixels_service_update(UpdateRetargetingPixelsRequest(...))`** changes them. Send only the pixels to change: an omitted field keeps its value, an empty string removes that pixel.
@@ -104,7 +104,7 @@ $ python retargeting_pixels.py --shortlink 3aOqKlmnp --probe
 
 3. **`retargeting_pixels_service_list_for_link(link_id)`** answers which pixels fire on one link. Empty means the link redirects instantly.
 
-For `--link` it also uses `LinksApi.links_service_create` (with `wait_for_qrcode=True`) and `links_service_resolve_qrcode_images`, which returns a signed URL for the QR image; the URLs expire, so the script downloads the SVG right away. `--probe` makes two plain GET requests without following the redirect.
+For `--link` it also uses `LinksApi.links_service_create` (with `wait_for_qrcode=True`) and `links_service_get` with `include=["qrcodeSignedUrl"]`, which returns a signed URL for the QR image; the URLs expire, so the script downloads the SVG right away. `--probe` makes two plain GET requests without following the redirect.
 
 The same calls in REST:
 

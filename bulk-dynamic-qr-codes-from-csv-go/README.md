@@ -73,7 +73,7 @@ Scan report: scan_report.csv
    	Execute()
    ```
 
-2. **`LinksServiceResolveQrcodeImages`** returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the program asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
+2. **`LinksServiceGet`** with `Include([]string{"qrcodeSignedUrl"})` returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the program asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
 3. **`LinksServiceGet`** (in `report`) reads each link's `EventCount`, the number of scans and clicks. It is not instant: in the run above, the counts had caught up within about two minutes of the scans.
 
 The token travels in the context, as every SDK call expects: `context.WithValue(ctx, linkbreakers.ContextAccessToken, token)`. When a call fails, the API's explanation is in the `*linkbreakers.GenericOpenAPIError` the SDK returns; `main` prints its `Body()`.

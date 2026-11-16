@@ -199,20 +199,26 @@ func idempotencyKey(requests []linkbreakers.CreateLinkRequest) (string, error) {
 // code is drawn in the background right after the create call. A code that is
 // still missing after the last attempt is a warning, not a failure.
 func (c client) qrImages(ctx context.Context, linkIDs []string) (map[string]string, error) {
-	var images map[string]string
+	images := make(map[string]string, len(linkIDs))
 	for range qrPollAttempts {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-time.After(qrPollInterval):
 		}
-		res, _, err := c.links.LinksServiceResolveQrcodeImages(ctx).
-			ResolveQrcodeImagesRequest(*linkbreakers.NewResolveQrcodeImagesRequest(linkIDs)).
-			Execute()
-		if err != nil {
-			return nil, err
+		for _, id := range linkIDs {
+			if _, ok := images[id]; ok {
+				continue
+			}
+			res, _, err := c.links.LinksServiceGet(ctx, id).Include([]string{"qrcodeSignedUrl"}).Execute()
+			if err != nil {
+				return nil, err
+			}
+			link := res.GetLink()
+			if url := link.GetQrcodeSignedUrl(); url != "" {
+				images[id] = url
+			}
 		}
-		images = res.GetQrcodeSignedUrls()
 		if len(images) >= len(linkIDs) {
 			return images, nil
 		}

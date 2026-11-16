@@ -19,13 +19,12 @@ from typing import Optional
 import urllib3
 from dotenv import load_dotenv
 from linkbreakers import (
-    AnalyticsDataApi,
+    AnalyticsApi,
     ApiClient,
     Configuration,
     CreateLinkRequest,
     GetBreakdownRequest,
     LinksApi,
-    ResolveQrcodeImagesRequest,
     TagsApi,
 )
 from linkbreakers.exceptions import ApiException
@@ -71,13 +70,10 @@ def ensure_codes(links_api: LinksApi, codes: list[dict], qr_dir: Path) -> None:
     # Signed image URLs expire, so download the files now.
     qr_dir.mkdir(parents=True, exist_ok=True)
     missing = [link for link in links if not (qr_dir / f"{link.shortlink}.svg").exists()]
-    if missing:
-        images = links_api.links_service_resolve_qrcode_images(
-            ResolveQrcodeImagesRequest(link_ids=[link.id for link in missing])
-        ).qrcode_signed_urls or {}
-        for link in missing:
-            if link.id in images:
-                download(images[link.id], qr_dir / f"{link.shortlink}.svg")
+    for link in missing:
+        image_url = links_api.links_service_get(link.id, include=["qrcodeSignedUrl"]).link.qrcode_signed_url
+        if image_url:
+            download(image_url, qr_dir / f"{link.shortlink}.svg")
     print(f"QR codes: {qr_dir}/\n")
 
 
@@ -87,9 +83,9 @@ def tag_id(tags_api: TagsApi, name: str) -> Optional[str]:
     return next((t.id for t in tags if t.name == name), None)
 
 
-def scans_by_country(analytics: AnalyticsDataApi, tag: str, countries: list[str], start: datetime, end: datetime) -> dict:
+def scans_by_country(analytics: AnalyticsApi, tag: str, countries: list[str], start: datetime, end: datetime) -> dict:
     """Scans and clicks of every link carrying this tag, per country (ISO alpha-2)."""
-    response = analytics.analytics_data_service_get_breakdown(GetBreakdownRequest(
+    response = analytics.analytics_service_get_breakdown(GetBreakdownRequest(
         dimension="country",
         tag_id=tag,              # at most one of tag_id, directory_id and link_id
         countries=countries or None,
@@ -101,7 +97,7 @@ def scans_by_country(analytics: AnalyticsDataApi, tag: str, countries: list[str]
 
 
 def report(api_client: ApiClient, product_lines: list[str], countries: list[str], days: int) -> None:
-    tags_api, analytics = TagsApi(api_client), AnalyticsDataApi(api_client)
+    tags_api, analytics = TagsApi(api_client), AnalyticsApi(api_client)
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=days)
 

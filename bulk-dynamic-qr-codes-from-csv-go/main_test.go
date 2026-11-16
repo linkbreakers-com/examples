@@ -64,22 +64,22 @@ func TestCreateThenReport(t *testing.T) {
 		w.Write([]byte(`{"links":[{"id":"id-1","name":"Menu","shortlink":"abc","entrypoint":"https://linkbreak.ing/abc"}]}`))
 	})
 	var server *httptest.Server
-	mux.HandleFunc("POST /v1/links/qrcode-images:resolve", func(w http.ResponseWriter, r *http.Request) {
-		// The first answer has no image yet: the code is still being drawn.
-		qrPolls++
-		w.Header().Set("Content-Type", "application/json")
-		if qrPolls == 1 {
-			w.Write([]byte(`{}`))
-			return
-		}
-		json.NewEncoder(w).Encode(map[string]any{"qrcodeSignedUrls": map[string]string{"id-1": server.URL + "/signed/abc.svg"}})
-	})
 	mux.HandleFunc("GET /signed/abc.svg", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<svg/>"))
 	})
 	mux.HandleFunc("GET /v1/links/id-1", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"link":{"id":"id-1","name":"Menu","entrypoint":"https://linkbreak.ing/abc","eventCount":7}}`))
+		if r.URL.Query().Get("include") != "qrcodeSignedUrl" {
+			w.Write([]byte(`{"link":{"id":"id-1","name":"Menu","entrypoint":"https://linkbreak.ing/abc","eventCount":7}}`))
+			return
+		}
+		// The first answer has no image yet: the code is still being drawn.
+		qrPolls++
+		if qrPolls == 1 {
+			w.Write([]byte(`{"link":{"id":"id-1"}}`))
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]any{"link": map[string]any{"id": "id-1", "qrcodeSignedUrl": server.URL + "/signed/abc.svg"}})
 	})
 	server = httptest.NewServer(mux)
 	defer server.Close()

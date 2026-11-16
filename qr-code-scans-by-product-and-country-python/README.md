@@ -92,9 +92,9 @@ cold-brew         3       3
 `scans_by_product.py` makes five SDK calls:
 
 1. **`LinksApi.links_service_list(tags=[product_line])`** finds the codes already carrying the tag (this filter takes tag names). **`links_service_create`** creates the missing ones with `CreateLinkRequest(name=..., destination=..., tags=[product_line], wait_for_qrcode=True)`. A tag that does not exist yet is created with the link.
-2. **`LinksApi.links_service_resolve_qrcode_images`** returns a signed URL for each QR code. The URLs expire, so the script downloads the SVGs right away.
+2. **`LinksApi.links_service_get`** with `include=["qrcodeSignedUrl"]` returns a signed URL for each QR code. The URLs expire, so the script downloads the SVGs right away.
 3. **`TagsApi.tags_service_list(search=product_line)`** turns each tag name into its ID. The analytics filter takes the tag ID, and `search` matches partial names, so the script keeps the exact match.
-4. **`AnalyticsDataApi.analytics_data_service_get_breakdown`**, once per product line, with:
+4. **`AnalyticsApi.analytics_service_get_breakdown`**, once per product line, with:
 
    ```python
    GetBreakdownRequest(

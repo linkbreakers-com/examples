@@ -75,9 +75,9 @@ The QR code itself encodes `https://linkbreak.ing/sV360hmcp?lbsrc=qrcode`. The `
 1. **`LinksApi.links_service_create`** creates the link with `wait_for_qrcode=True`. The response includes the link's workflow steps, among them the redirect to the fallback page.
 2. **`WorkflowStepsApi.workflow_steps_service_create`** twice, with `EVENT_ACTION_CLIENT_REDIRECT`: one redirect to the App Store URL, one to the Google Play URL. They are not connected to anything yet.
 3. **`workflow_steps_service_create`** with `EVENT_ACTION_DEVICE_PLATFORM_CONDITION`, two options (`DEVICE_PLATFORM_CONDITION_VALUE_IOS` with id `ios`, `DEVICE_PLATFORM_CONDITION_VALUE_ANDROID` with id `android`) and `insert_before` set to the fallback redirect. The link visit now leads to the condition instead of straight to the fallback.
-4. **`workflow_steps_service_connect_step`** three times: branch `ios` to the App Store redirect, `android` to the Google Play redirect, and `else` to the fallback redirect. A condition's branch ids are its option ids plus `else`.
+4. **`workflow_steps_service_connect`** three times: branch `ios` to the App Store redirect, `android` to the Google Play redirect, and `else` to the fallback redirect. A condition's branch ids are its option ids plus `else`.
 5. **`workflow_steps_service_auto_layout_workflow`** tidies the steps in the dashboard's workflow editor, and **`workflow_steps_service_validate_workflow`** prints any issue it finds (none in the run above).
-6. **`LinksApi.links_service_resolve_qrcode_images`** returns a signed URL for the QR code. It expires, so the script downloads the SVG right away.
+6. **`LinksApi.links_service_get`** with `include=["qrcodeSignedUrl"]` returns a signed URL for the QR code. It expires, so the script downloads the SVG right away.
 
 Open the link in the [dashboard](https://app.linkbreakers.com/workspace/dashboard/links) to see the same workflow in the editor and change it by hand.
 

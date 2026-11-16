@@ -20,7 +20,6 @@ from linkbreakers import (
     CreateBulkLinksRequest,
     CreateLinkRequest,
     LinksApi,
-    ResolveQrcodeImagesRequest,
 )
 from linkbreakers.exceptions import ApiException
 
@@ -94,10 +93,13 @@ def qr_images(links_api: LinksApi, link_ids: list[str]) -> dict[str, str]:
     images: dict[str, str] = {}
     for _ in range(QR_WAIT_ATTEMPTS):
         time.sleep(2)
-        images = links_api.links_service_resolve_qrcode_images(
-            ResolveQrcodeImagesRequest(link_ids=link_ids)
-        ).qrcode_signed_urls or {}
-        if all(link_id in images for link_id in link_ids):
+        for link_id in link_ids:
+            if link_id in images:
+                continue
+            link = links_api.links_service_get(link_id, include=["qrcodeSignedUrl"]).link
+            if link.qrcode_signed_url:
+                images[link_id] = link.qrcode_signed_url
+        if len(images) == len(link_ids):
             break
     missing = len(link_ids) - len(images)
     if missing:

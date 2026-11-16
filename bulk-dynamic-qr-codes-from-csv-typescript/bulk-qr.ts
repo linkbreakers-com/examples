@@ -96,11 +96,13 @@ async function create(inputCsv: string, outputCsv: string, qrDir: string): Promi
 // Each QR code is drawn in the background right after the call. Ask for the
 // images until every link has one; signed URLs expire, so download them now.
 async function qrImages(api: LinksApi, linkIds: string[]): Promise<Record<string, string>> {
-  let images: Record<string, string> = {};
+  const images: Record<string, string> = {};
   for (let attempt = 0; attempt < QR_WAIT_ATTEMPTS; attempt++) {
     await sleep(2_000);
-    const res = await api.linksServiceResolveQrcodeImages({ resolveQrcodeImagesRequest: { linkIds } });
-    images = res.qrcodeSignedUrls ?? {};
+    for (const id of linkIds.filter((id) => !(id in images))) {
+      const { link } = await api.linksServiceGet({ id, include: ["qrcodeSignedUrl"] });
+      if (link?.qrcodeSignedUrl) images[id] = link.qrcodeSignedUrl;
+    }
     if (linkIds.every((id) => id in images)) break;
   }
   const missing = linkIds.length - Object.keys(images).length;

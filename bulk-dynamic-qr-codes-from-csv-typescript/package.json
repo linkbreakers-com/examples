@@ -14,7 +14,7 @@
   "dependencies": {
     "csv-parse": "^7.0.3",
     "csv-stringify": "^6.9.0",
-    "linkbreakers": "^1.190.0"
+    "linkbreakers": "1.200.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

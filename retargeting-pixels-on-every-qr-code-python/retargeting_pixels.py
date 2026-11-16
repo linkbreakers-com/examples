@@ -22,9 +22,8 @@ from linkbreakers import (
     ApiClient,
     Configuration,
     CreateLinkRequest,
+    IntegrationsRetargetingPixelsApi,
     LinksApi,
-    ResolveQrcodeImagesRequest,
-    RetargetingPixelsApi,
     UpdateRetargetingPixelsRequest,
 )
 from linkbreakers.exceptions import ApiException
@@ -89,12 +88,10 @@ def find_by_shortlink(links_api: LinksApi, shortlink: str):
 def save_qr(links_api: LinksApi, link, qr_dir: Path) -> Path:
     path = qr_dir / f"{link.shortlink}.svg"
     if not path.exists():
-        urls = links_api.links_service_resolve_qrcode_images(
-            ResolveQrcodeImagesRequest(link_ids=[link.id])
-        ).qrcode_signed_urls or {}
-        if link.id in urls:
+        image_url = links_api.links_service_get(link.id, include=["qrcodeSignedUrl"]).link.qrcode_signed_url
+        if image_url:
             qr_dir.mkdir(parents=True, exist_ok=True)
-            response = urllib3.request("GET", urls[link.id], timeout=30)
+            response = urllib3.request("GET", image_url, timeout=30)
             if response.status != 200:
                 raise RuntimeError(f"QR image download failed with HTTP {response.status}")
             path.write_bytes(response.data)
@@ -135,7 +132,7 @@ def main() -> None:
         change[PIXELS[flag][0]] = ""  # an empty string removes it; omitted pixels are kept
 
     with client() as api:
-        pixels_api = RetargetingPixelsApi(api)
+        pixels_api = IntegrationsRetargetingPixelsApi(api)
         try:
             if change:
                 pixels = pixels_api.retargeting_pixels_service_update(

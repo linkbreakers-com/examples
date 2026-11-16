@@ -78,7 +78,7 @@ Scan report: scan_report.csv
    });
    ```
 
-2. **`linksServiceResolveQrcodeImages`** returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the script asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
+2. **`linksServiceGet`** with `include: ["qrcodeSignedUrl"]` returns a signed URL for each link's QR code. The codes are drawn in the background right after the call, so the script asks every 2 seconds (for up to 30 seconds) until every link has one. The URLs expire, so it downloads the SVGs right away into `qr/<shortlink>.svg`.
 3. **`linksServiceGet`** (in `report`) reads each link's `eventCount`, the number of scans and clicks. It is not instant: in the run above, the counts caught up within about two minutes of the scans.
 
 Each batch is sent with an `Idempotency-Key` derived from its contents. If a run fails after a batch was answered (a failed download, a crash), running it again with the same CSV within 24 hours gets the first response back instead of creating the links twice.
